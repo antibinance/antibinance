@@ -5,8 +5,8 @@
   --foreground: #eaecef;
   --card-bg: rgba(24, 26, 32, 0.6);
   --card-border: rgba(43, 49, 57, 0.4);
-  --accent: #f0b90b; /* Binance yellow */
-  --accent-hover: #f8d155;
+  --accent: #c084fc; /* Pale purple */
+  --accent-hover: #d8b4fe;
   --danger: #f6465d; /* Binance Red */
   --danger-hover: #ff7083;
   --success: #0ecb81; /* Binance Green */
@@ -17,7 +17,7 @@
 @theme {
   --color-binance-dark: #0b0e11;
   --color-binance-gray: #181a20;
-  --color-binance-yellow: #f0b90b;
+  --color-binance-yellow: #c084fc; /* Keep tailwind class name for compatibility or rename */
   --color-binance-red: #f6465d;
   --color-binance-green: #0ecb81;
   --color-binance-border: #2b3139;
@@ -44,7 +44,7 @@ body {
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f0b90b;
+  background: #c084fc;
 }
 
 /* Glassmorphism utility */
@@ -57,7 +57,7 @@ body {
 
 /* Glowing text */
 .glow-yellow {
-  text-shadow: 0 0 10px rgba(240, 185, 11, 0.3);
+  text-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
 }
 .glow-red {
   text-shadow: 0 0 10px rgba(246, 70, 93, 0.4);

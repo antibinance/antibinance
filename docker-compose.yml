@@ -9,7 +9,7 @@ services:
     ports:
       - "3001:3000" # Map to 3001 since 3000 is occupied by crypto-frontend!
     environment:
-      DATABASE_URL: postgres://crypto_admin:crypto_secure_2026@192.168.88.198:5433/postgres
-      JWT_SECRET: production-secret-key-at-least-32-chars-long-antibinance
+      - DATABASE_URL
+      - JWT_SECRET
     restart: always
     command: sh -c "npx drizzle-kit push && npm run start"

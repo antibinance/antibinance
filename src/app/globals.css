@@ -1,26 +1,79 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0b0e11;
+  --foreground: #eaecef;
+  --card-bg: rgba(24, 26, 32, 0.6);
+  --card-border: rgba(43, 49, 57, 0.4);
+  --accent: #f0b90b; /* Binance yellow */
+  --accent-hover: #f8d155;
+  --danger: #f6465d; /* Binance Red */
+  --danger-hover: #ff7083;
+  --success: #0ecb81; /* Binance Green */
+  --success-hover: #2de09a;
+  --text-muted: #848e9c;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-binance-dark: #0b0e11;
+  --color-binance-gray: #181a20;
+  --color-binance-yellow: #f0b90b;
+  --color-binance-red: #f6465d;
+  --color-binance-green: #0ecb81;
+  --color-binance-border: #2b3139;
+  --color-text-muted: #848e9c;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0e11;
+}
+::-webkit-scrollbar-thumb {
+  background: #2b3139;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f0b90b;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(24, 26, 32, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(43, 49, 57, 0.5);
+}
+
+/* Glowing text */
+.glow-yellow {
+  text-shadow: 0 0 10px rgba(240, 185, 11, 0.3);
+}
+.glow-red {
+  text-shadow: 0 0 10px rgba(246, 70, 93, 0.4);
+}
+
+/* Toast slide-in animation */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
 }

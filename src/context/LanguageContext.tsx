@@ -12,19 +12,19 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("zh"); // Default to Chinese as requested
+  const [locale, setLocaleState] = useState<Locale>("en"); // Default to English
 
   useEffect(() => {
     const savedLocale = localStorage.getItem("locale") as Locale;
     if (savedLocale === "en" || savedLocale === "zh") {
       setLocaleState(savedLocale);
     } else {
-      // Auto detect browser language
+      // Auto detect browser language, default to English if not Chinese
       const browserLang = navigator.language.toLowerCase();
-      if (browserLang.includes("en")) {
-        setLocaleState("en");
-      } else {
+      if (browserLang.includes("zh")) {
         setLocaleState("zh");
+      } else {
+        setLocaleState("en");
       }
     }
   }, []);

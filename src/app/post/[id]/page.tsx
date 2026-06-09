@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, use } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useWallet } from "@/context/WalletContext";
 import { useLanguage } from "@/context/LanguageContext";
 import PostCard from "@/components/PostCard";
@@ -17,6 +18,7 @@ import {
   Image as ImageIcon,
   X,
   Loader2,
+  Trash2,
 } from "lucide-react";
 
 type PageProps = {
@@ -25,6 +27,7 @@ type PageProps = {
 
 export default function PostDetail({ params }: PageProps) {
   const { id } = use(params);
+  const router = useRouter();
   const { user, login } = useWallet();
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -38,6 +41,7 @@ export default function PostDetail({ params }: PageProps) {
   const [likesCount, setLikesCount] = useState(0);
   const [showCopied, setShowCopied] = useState(false);
   const [lightbox, setLightbox] = useState(false);
+  const [isDeletingMain, setIsDeletingMain] = useState(false);
 
   // Media upload state for reply
   const [replyMediaUrl, setReplyMediaUrl] = useState("");
@@ -141,6 +145,26 @@ export default function PostDetail({ params }: PageProps) {
       toast("Error submitting reply", "error");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteMainPost = async () => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    setIsDeletingMain(true);
+    try {
+      const res = await fetch(`/api/posts/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast("Post deleted successfully", "success");
+        router.push("/");
+      } else {
+        const err = await res.json();
+        toast(err.error || "Failed to delete post", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      toast("Error deleting post", "error");
+    } finally {
+      setIsDeletingMain(false);
     }
   };
 
@@ -326,6 +350,18 @@ export default function PostDetail({ params }: PageProps) {
               </span>
             )}
           </div>
+
+          {/* Delete */}
+          {user && user.address.toLowerCase() === post.user.address.toLowerCase() && (
+            <button
+              onClick={handleDeleteMainPost}
+              disabled={isDeletingMain}
+              className="flex items-center space-x-1.5 text-text-muted hover:text-binance-red transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="text-xs">Delete</span>
+            </button>
+          )}
         </div>
       </article>
 
@@ -439,7 +475,13 @@ export default function PostDetail({ params }: PageProps) {
                   )}
                 </div>
                 <div className="flex-1 mb-3">
-                  <PostCard post={reply} compact />
+                  <PostCard
+                    post={reply}
+                    compact
+                    onDelete={(deletedId) => {
+                      setReplies((prev) => prev.filter((r) => r.id !== deletedId));
+                    }}
+                  />
                 </div>
               </div>
             ))}

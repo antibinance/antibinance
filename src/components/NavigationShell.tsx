@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useWallet } from "@/context/WalletContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/context/ToastContext";
@@ -22,6 +22,7 @@ import {
 
 export default function NavigationShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isConnecting, login, logout } = useWallet();
   const { locale, setLocale, t } = useLanguage();
   const { toast } = useToast();
@@ -55,6 +56,9 @@ export default function NavigationShell({ children }: { children: React.ReactNod
     { name: t("home"), href: "/", icon: Home },
     { name: t("tokenForums"), href: "/#tokens", icon: Coins },
   ];
+  if (user) {
+    menuItems.push({ name: t("profile") || "Profile", href: `/user/${user.address}`, icon: UserIcon });
+  }
 
   return (
     <div className="flex min-h-screen bg-binance-dark text-gray-200">
@@ -134,7 +138,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
         <div className="p-3 xl:px-3 pb-5">
           {user ? (
             <div className="flex items-center justify-center xl:justify-between xl:px-3 py-2 rounded-full hover:bg-binance-border/30 transition-all cursor-pointer group"
-              onClick={logout}
+              onClick={() => router.push(`/user/${user.address}`)}
             >
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-full bg-binance-yellow/20 border border-binance-yellow/40 flex items-center justify-center text-binance-yellow font-bold uppercase text-sm shrink-0">
@@ -145,7 +149,16 @@ export default function NavigationShell({ children }: { children: React.ReactNod
                   <p className="text-xs text-text-muted truncate">{user.address.slice(0, 6)}...{user.address.slice(-4)}</p>
                 </div>
               </div>
-              <MoreHorizontal className="hidden xl:block w-4 h-4 text-text-muted group-hover:text-binance-red" />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  logout();
+                }}
+                className="hidden xl:block p-1 text-text-muted hover:text-binance-red rounded-full transition-all cursor-pointer"
+                title={t("disconnect") || "Disconnect"}
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           ) : (
             <button

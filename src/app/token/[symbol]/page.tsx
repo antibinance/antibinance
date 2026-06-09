@@ -286,7 +286,13 @@ export default function TokenForum({ params }: PageProps) {
           ) : (
             <div className="space-y-4">
               {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onDelete={(deletedId) => {
+                    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+                  }}
+                />
               ))}
             </div>
           )}

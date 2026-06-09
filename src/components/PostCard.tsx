@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
-import { Heart, MessageCircle, Share2, BarChart2, X } from "lucide-react";
+import { useWallet } from "@/context/WalletContext";
+import { Heart, MessageCircle, Share2, BarChart2, X, Trash2 } from "lucide-react";
 
 export interface PostCardPost {
   id: string;
@@ -30,6 +31,7 @@ export interface PostCardPost {
 interface PostCardProps {
   post: PostCardPost;
   onLikeToggle?: (postId: string, liked: boolean) => void;
+  onDelete?: (postId: string) => void;
   compact?: boolean;
 }
 
@@ -46,13 +48,15 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-export default function PostCard({ post, onLikeToggle, compact = false }: PostCardProps) {
+export default function PostCard({ post, onLikeToggle, onDelete, compact = false }: PostCardProps) {
   const { t } = useLanguage();
+  const { user } = useWallet();
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likesCount);
   const [showCopied, setShowCopied] = useState(false);
   const [lightbox, setLightbox] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -82,9 +86,34 @@ export default function PostCard({ post, onLikeToggle, compact = false }: PostCa
     }
   };
 
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/posts/${post.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        onDelete?.(post.id);
+      } else {
+        const err = await res.json();
+        alert(err.error || "Failed to delete post");
+      }
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      alert("Error deleting post");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleCardClick = () => {
     router.push(`/post/${post.id}`);
   };
+
+  const isOwner = user && user.address.toLowerCase() === post.user.address.toLowerCase();
 
   return (
     <>
@@ -94,11 +123,15 @@ export default function PostCard({ post, onLikeToggle, compact = false }: PostCa
       >
         <div className="flex space-x-3">
           {/* Avatar */}
-          <div className={`rounded-full bg-binance-yellow/10 border border-binance-yellow/20 flex items-center justify-center font-bold text-binance-yellow uppercase shrink-0 ${
-            compact ? "w-8 h-8 text-[10px]" : "w-10 h-10 text-xs"
-          }`}>
+          <Link
+            href={`/user/${post.user.address}`}
+            onClick={(e) => e.stopPropagation()}
+            className={`rounded-full bg-binance-yellow/10 border border-binance-yellow/20 flex items-center justify-center font-bold text-binance-yellow uppercase shrink-0 hover:bg-binance-yellow/20 transition-all ${
+              compact ? "w-8 h-8 text-[10px]" : "w-10 h-10 text-xs"
+            }`}
+          >
             {post.user.username.slice(0, 2)}
-          </div>
+          </Link>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
@@ -111,10 +144,14 @@ export default function PostCard({ post, onLikeToggle, compact = false }: PostCa
 
             {/* Header: name · @address · time · token badge */}
             <div className="flex items-center space-x-1.5 flex-wrap">
-              <span className={`font-bold text-white ${compact ? "text-xs" : "text-sm"}`}>
+              <Link
+                href={`/user/${post.user.address}`}
+                onClick={(e) => e.stopPropagation()}
+                className={`font-bold text-white hover:underline ${compact ? "text-xs" : "text-sm"}`}
+              >
                 {post.user.username}
-              </span>
-              <span className="text-text-muted text-xs">
+              </Link>
+              <span className="text-text-muted text-xs font-mono">
                 {post.user.address.slice(0, 6)}...{post.user.address.slice(-4)}
               </span>
               <span className="text-text-muted text-xs">·</span>
@@ -168,7 +205,7 @@ export default function PostCard({ post, onLikeToggle, compact = false }: PostCa
             )}
 
             {/* Action bar - X style */}
-            <div className="flex items-center justify-between mt-2 max-w-[380px] -ml-2">
+            <div className="flex items-center justify-between mt-2 max-w-[420px] -ml-2">
               {/* Reply */}
               <button
                 onClick={(e) => { e.stopPropagation(); router.push(`/post/${post.id}`); }}
@@ -210,6 +247,18 @@ export default function PostCard({ post, onLikeToggle, compact = false }: PostCa
                   </span>
                 )}
               </div>
+
+              {/* Delete - Only show if current user is owner */}
+              {isOwner && (
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex items-center space-x-1 text-text-muted hover:text-binance-red transition-all group p-2 rounded-full hover:bg-binance-red/10 cursor-pointer disabled:opacity-50"
+                  title="Delete post"
+                >
+                  <Trash2 className="w-[18px] h-[18px] group-hover:scale-110 transition-transform" />
+                </button>
+              )}
             </div>
           </div>
         </div>

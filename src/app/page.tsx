@@ -317,7 +317,12 @@ export default function Home() {
             <div>
               {posts.map((post) => (
                 <div key={post.id} className="border-b border-binance-border">
-                  <PostCard post={post} />
+                  <PostCard
+                    post={post}
+                    onDelete={(deletedId) => {
+                      setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+                    }}
+                  />
                 </div>
               ))}
             </div>

@@ -72,6 +72,7 @@ export const translations = {
     linkCopied: "Post link copied to clipboard",
     search: "Search",
     trackTokenDesc: "Track a new token that Binance listed. Create a discussion space for the community.",
+    profile: "Profile",
   },
   zh: {
     brand: "AntiBinance",
@@ -146,6 +147,7 @@ export const translations = {
     linkCopied: "帖子链接已复制到剪贴板",
     search: "搜索",
     trackTokenDesc: "追踪币安新上线的代币，为社区创建讨论专区。",
+    profile: "个人主页",
   }
 };
 

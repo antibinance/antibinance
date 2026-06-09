@@ -49,7 +49,17 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async () => {
-    if (typeof window === "undefined" || !(window as any).ethereum) {
+    if (typeof window === "undefined") return;
+
+    if (!(window as any).ethereum) {
+      // Check if mobile device
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile) {
+        const cleanHost = window.location.host;
+        const targetUrl = `https://metamask.app.link/dapp/${cleanHost}${window.location.pathname}${window.location.search}`;
+        window.location.href = targetUrl;
+        return;
+      }
       toast("MetaMask is not installed. Please install MetaMask to login.", "error");
       return;
     }

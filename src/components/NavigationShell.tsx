@@ -28,6 +28,7 @@ export default function NavigationShell({ children }: { children: React.ReactNod
   const { toast } = useToast();
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [tokenForm, setTokenForm] = useState({ symbol: "", name: "", description: "", binanceUrl: "" });
+  const isAdmin = user && user.address.toLowerCase() === "0x0eB91E88F17d1C000a94fa2Bb0db72830A265A23".toLowerCase();
 
   const handleTokenSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,23 +195,25 @@ export default function NavigationShell({ children }: { children: React.ReactNod
             </div>
 
             {/* Add Token Card */}
-            <div className="bg-binance-gray border border-binance-border rounded-2xl p-4 space-y-3">
-              <h3 className="font-bold text-base text-white">{t("trackTokenTitle")}</h3>
-              <p className="text-xs text-text-muted leading-relaxed">{t("trackTokenDesc") || "Track a new token that Binance listed."}</p>
-              <button
-                onClick={() => {
-                  if (!user) {
-                    toast(t("connectToPost"), "warning");
-                    return;
-                  }
-                  setShowTokenModal(true);
-                }}
-                className="flex items-center space-x-1.5 px-4 py-2 bg-binance-yellow hover:bg-binance-yellow/90 text-binance-dark font-bold rounded-full text-sm transition-all cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{t("trackToken")}</span>
-              </button>
-            </div>
+            {isAdmin && (
+              <div className="bg-binance-gray border border-binance-border rounded-2xl p-4 space-y-3">
+                <h3 className="font-bold text-base text-white">{t("trackTokenTitle")}</h3>
+                <p className="text-xs text-text-muted leading-relaxed">{t("trackTokenDesc") || "Track a new token that Binance listed."}</p>
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      toast(t("connectToPost"), "warning");
+                      return;
+                    }
+                    setShowTokenModal(true);
+                  }}
+                  className="flex items-center space-x-1.5 px-4 py-2 bg-binance-yellow hover:bg-binance-yellow/90 text-binance-dark font-bold rounded-full text-sm transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{t("trackToken")}</span>
+                </button>
+              </div>
+            )}
 
             {/* Disclaimer */}
             <div className="p-4 rounded-2xl border border-binance-border bg-binance-gray text-xs text-text-muted leading-relaxed space-y-2">

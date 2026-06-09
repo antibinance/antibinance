@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, useRef } from "react";
 import Link from "next/link";
 import { useWallet } from "@/context/WalletContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -10,7 +10,10 @@ import { useToast } from "@/context/ToastContext";
 import { 
   ArrowLeft, 
   Send,
-  AlertTriangle
+  AlertTriangle,
+  Image as ImageIcon,
+  X,
+  Loader2
 } from "lucide-react";
 
 interface TokenDetails {
@@ -49,6 +52,11 @@ export default function TokenForum({ params }: PageProps) {
   const [posts, setPosts] = useState<PostCardPost[]>([]);
   const [newPostText, setNewPostText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaType, setMediaType] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchTokenDetails = async () => {
     try {
@@ -89,10 +97,40 @@ export default function TokenForum({ params }: PageProps) {
     fetchForumData();
   }, [symbol]);
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMediaUrl(data.url);
+        setMediaType(data.mediaType);
+      } else {
+        const err = await res.json();
+        toast(err.error || "Upload failed", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      toast("Error uploading file", "error");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!newPostText.trim()) return;
+    if (!newPostText.trim() && !mediaUrl) return;
 
     try {
       const res = await fetch("/api/posts", {
@@ -101,6 +139,8 @@ export default function TokenForum({ params }: PageProps) {
         body: JSON.stringify({
           content: newPostText,
           tokenSymbol: symbol,
+          mediaUrl: mediaUrl || null,
+          mediaType: mediaType || null,
         }),
       });
 
@@ -115,12 +155,15 @@ export default function TokenForum({ params }: PageProps) {
         };
         setPosts([newPost, ...posts]);
         setNewPostText("");
+        setMediaUrl("");
+        setMediaType("");
       } else {
         const err = await res.json();
         toast(err.error || "Failed to post", "error");
       }
     } catch (err) {
       console.error(err);
+      toast("Error posting", "error");
     }
   };
 
@@ -166,20 +209,62 @@ export default function TokenForum({ params }: PageProps) {
               <div className="w-10 h-10 rounded-full bg-binance-yellow/20 flex items-center justify-center font-bold text-binance-yellow uppercase text-sm border border-binance-yellow/30 shrink-0">
                 {user.username.slice(0, 2)}
               </div>
-              <textarea
-                placeholder={`${t("writeWarning")} $${token.symbol}...`}
-                className="w-full bg-transparent border-0 text-sm focus:outline-none resize-none min-h-[80px] text-gray-200 placeholder-gray-500 pt-2"
-                value={newPostText}
-                onChange={(e) => setNewPostText(e.target.value)}
-                required
-              />
+              <div className="flex-1 space-y-3">
+                <textarea
+                  placeholder={`${t("writeWarning")} $${token.symbol}...`}
+                  className="w-full bg-transparent border-0 text-sm focus:outline-none resize-none min-h-[80px] text-gray-200 placeholder-gray-500 pt-2"
+                  value={newPostText}
+                  onChange={(e) => setNewPostText(e.target.value)}
+                />
+
+                {/* Media Preview */}
+                {mediaUrl && (
+                  <div className="relative mt-2 rounded-xl overflow-hidden border border-binance-border group max-w-md bg-binance-dark/40">
+                    {mediaType === "image" ? (
+                      <img src={mediaUrl} alt="Upload preview" className="w-full max-h-60 object-cover" />
+                    ) : (
+                      <video src={mediaUrl} controls className="w-full max-h-60 object-cover" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => { setMediaUrl(""); setMediaType(""); }}
+                      className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1.5 transition-all cursor-pointer shadow-md"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="border-t border-binance-border/50 pt-3 flex justify-between items-center">
-              <span className="text-[10px] text-text-muted uppercase">Tag: ${token.symbol}</span>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*,video/*"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="text-binance-yellow hover:bg-binance-yellow/10 p-2 rounded-full transition-all cursor-pointer disabled:opacity-40"
+                  title="Add Image or Video"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <ImageIcon className="w-5 h-5" />
+                  )}
+                </button>
+                <span className="text-[10px] text-text-muted uppercase">Tag: ${token.symbol}</span>
+              </div>
               <button
                 type="submit"
-                className="flex items-center space-x-1.5 px-4 py-2 bg-binance-yellow hover:bg-binance-yellow/90 text-binance-dark font-bold rounded-lg text-xs transition-all shadow-md cursor-pointer"
+                disabled={isUploading || (!newPostText.trim() && !mediaUrl)}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-binance-yellow hover:bg-binance-yellow/90 text-binance-dark font-bold rounded-lg text-xs transition-all shadow-md cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{t("sendToBoard")}</span>
